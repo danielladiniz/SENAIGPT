@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENAI GPT - Controle de Tela</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f4f4;
+    color: #202124;
+    transition: .3s;
+  }
+
+  .page {
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Faixa lateral semelhante à referência */
+  .red-bar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 34px;
+    height: 100vh;
+    background: #c90016;
+    z-index: 2;
+  }
+
+  .content {
+    min-height: 100vh;
+    padding: 55px 30px 80px 65px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .brand {
+    margin-top: 80px;
+    text-align: center;
+  }
+
+  .robot {
+    width: 145px;
+    height: 145px;
+    object-fit: contain;
+    border: 1px solid #ddd;
+    background: white;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .robot img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .title {
+    margin-top: -4px;
+    font-size: clamp(42px, 7vw, 72px);
+    font-weight: 800;
+    letter-spacing: -3px;
+  }
+
+  .title .accent { color: #c90016; }
+
+  .chat-area {
+    width: min(700px, 92vw);
+    margin-top: 120px;
+  }
+
+  .input-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #999;
+    padding: 12px 5px;
+  }
+
+  .input-box input {
+    flex: 1;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-size: 18px;
+    color: inherit;
+  }
+
+  .send {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    border: 0;
+    background: #c90016;
+    color: white;
+    font-size: 26px;
+    cursor: pointer;
+  }
+
+  .toolbar {
+    position: fixed;
+    right: 24px;
+    top: 22px;
+    z-index: 5;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 10px;
+    border-radius: 18px;
+    background: rgba(255,255,255,.94);
+    box-shadow: 0 5px 22px rgba(0,0,0,.16);
+    backdrop-filter: blur(8px);
+  }
+
+  .toolbar button {
+    border: 0;
+    background: #eee;
+    color: #222;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 19px;
+  }
+
+  .toolbar button:hover { transform: scale(1.05); }
+
+  .brightness {
+    width: 115px;
+    accent-color: #c90016;
+  }
+
+  .brightness-label {
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+
+  .brightness-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 4;
+    transition: opacity .15s;
+  }
+
+  .answer {
+    margin-top: 25px;
+    padding: 15px 18px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.65);
+    display: none;
+  }
+
+  .dark {
+    background: #171717;
+    color: #eee;
+  }
+
+  .dark .robot { background: #222; border-color: #444; }
+  .dark .input-box { border-color: #777; }
+  .dark .toolbar { background: rgba(35,35,35,.95); }
+  .dark .toolbar button { background: #333; color: #fff; }
+  .dark .answer { background: #252525; }
+
+  .help {
+    position: fixed;
+    left: 55px;
+    bottom: 18px;
+    font-size: 12px;
+    opacity: .65;
+  }
+
+  @media (max-width: 600px) {
+    .red-bar { width: 12px; }
+    .content { padding-left: 25px; padding-right: 25px; }
+    .brand { margin-top: 100px; }
+    .chat-area { margin-top: 75px; }
+    .toolbar {
+      right: 10px;
+      left: 10px;
+      justify-content: center;
+    }
+    .brightness { width: 100px; }
+  }
+</style>
+</head>
+
+<body>
+<div class="page" id="page">
+  <div class="red-bar"></div>
+
+  <div class="toolbar" aria-label="Controles de tela">
+    <button onclick="decreaseBrightness()" title="Escurecer">☀−</button>
+    <input id="brightness" class="brightness" type="range" min="0" max="100" value="100"
+           oninput="setBrightness(this.value)" title="Brilho da tela">
+    <button onclick="increaseBrightness()" title="Clarear">☀+</button>
+    <button onclick="toggleDark()" title="Modo claro/escuro">◐</button>
+    <span id="brightnessLabel" class="brightness-label">100%</span>
+  </div>
+
+  <main class="content">
+    <section class="brand">
+      <div class="robot" aria-label="Robô SENAI GPT">
+        <img src="SENAI-AI 1.png" alt="">
+      </div>
+      <div class="title">SENAI <span class="accent">GPT</span></div>
+    </section>
+
+    <section class="chat-area">
+      <div class="input-box">
+        <input id="question" placeholder="Pergunte algo..." />
+        <button class="send" onclick="sendQuestion()" title="Enviar">➤</button>
+      </div>
+      <div id="answer" class="answer"></div>
+    </section>
+  </main>
+
+  <div class="help">Use os controles no canto superior para clarear ou escurecer a página.</div>
+  <div id="overlay" class="brightness-overlay"></div>
+</div>
+
+<script>
+  const page = document.getElementById('page');
+  const overlay = document.getElementById('overlay');
+  const slider = document.getElementById('brightness');
+  const label = document.getElementById('brightnessLabel');
+
+  function setBrightness(value) {
+    value = Math.max(10, Math.min(100, Number(value)));
+    slider.value = value;
+    label.textContent = value + '%';
+    // Escurece a tela sem alterar o conteúdo.
+    overlay.style.opacity = ((100 - value) / 100 * 0.82).toFixed(2);
+  }
+
+  function increaseBrightness() {
+    setBrightness(Number(slider.value) + 10);
+  }
+
+  function decreaseBrightness() {
+    setBrightness(Number(slider.value) - 10);
+  }
+
+  function toggleDark() {
+    page.classList.toggle('dark');
+  }
+
+  function sendQuestion() {
+    const input = document.getElementById('question');
+    const answer = document.getElementById('answer');
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    answer.style.display = 'block';
+    answer.innerHTML = '<strong>Você perguntou:</strong> ' +
+      text.replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+      '<br><br>Esta é uma página demonstrativa inspirada no layout da imagem.';
+    input.value = '';
+  }
+
+  document.getElementById('question').addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendQuestion();
+  });
+</script>
+</body>
+</html>
